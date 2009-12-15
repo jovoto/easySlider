@@ -1,6 +1,9 @@
 options
 =======
 
+existing
+--------
+
 * auto:  
   automatically move slider to the left every 2 seconds
 * continuous:  
@@ -13,3 +16,11 @@ options
   number of items to be visible at a time
 * scrollBy:  
   number of items to scroll when pressing previous and next
+* startAt:
+  start position of the slider
+
+todo
+----
+* growToParent:
+  grow (in decrete steps) to always approximately fill parent
+* let continuous take URL string argument for ajax requests
