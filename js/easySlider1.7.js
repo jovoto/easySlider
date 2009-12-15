@@ -94,7 +94,8 @@
 			  $("li", obj).css('float','left');
       }
 
-			obj.css("overflow","hidden");
+			obj.css(          { overflow: "hidden", });
+      $("ul", obj).css( { position: "relative"});
 								
 			if(options.controlsShow){
 				var html = options.controlsBefore;				
