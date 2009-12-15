@@ -1,15 +1,15 @@
 options
 =======
 
-* auto:
+* auto:  
   automatically move slider to the left every 2 seconds
-* continuous:
+* continuous:  
   wrap slider around, so that first element appears again after the last
-* nextId:
+* nextId:  
   id of the "next" button 
-* prevId:
+* prevId:  
   id of the "previous" button 
-* itemCount:
+* itemCount:  
   number of items to be visible at a time
-* scrollBy:
+* scrollBy:  
   number of items to scroll when pressing previous and next
