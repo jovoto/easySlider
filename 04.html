@@ -12,8 +12,9 @@
         $("#slider").easySlider({
           continuous: true,
           itemCount:  4,
-          scrollBy:   2,
-          startAt:    1
+          scrollBy:   3,
+          startAt:    1,
+          vertical:   false
         });
       });	
     </script>
@@ -22,9 +23,10 @@
 
     <style>
       #slider li{
+        padding-top: 50px;
         width:      150px;
         height:     200px;
-        font-size:  200px;
+        font-size:  100px;
         text-align: center;
       }
     </style>
@@ -32,11 +34,11 @@
   </head>
   <body>
     <div id="container">
-      <div id="header">
-        <h1>
-          diverse Tests
-        </h1>
-      </div>
+
+      <h1>
+        diverse Tests
+      </h1>
+
       <div id="content">
         <div id="slider" style="border: 1px solid blue">
           <ul>				
@@ -48,6 +50,11 @@
             <li>6</li>
           </ul>
         </div>
+        <h3>adding elements</h3>
+
+        <button id="adder"> ADD element at the end
+        </button>
+
         <h3>Usage</h3>
         <pre>
           $(document).ready(function(){	

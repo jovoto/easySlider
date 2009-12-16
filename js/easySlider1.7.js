@@ -69,12 +69,16 @@
 			var h = $("li", obj).height(); 
 			var s = $("li", obj).length;
 			var clickable = true;
-			var maxPos = s-1;
+			var maxPos = options.continuous ? s-1 : s-options.itemCount;
 			var curPos = options.startAt;
       var totalItemCount = s;
+      
+      var firstItem = $("ul li:first-child");
+      var lastItem  = $("ul li:nth-child("+s+")");
+      var padItemCount = Math.max(options.itemCount, options.scrollBy) + options.startAt;
 			
 			if(options.continuous){
-        for (var i=1; i <= Math.max(options.itemCount, options.scrollBy) + options.startAt; i++){
+        for (var i=1; i <= padItemCount; i++){
           $("ul", obj).prepend($("ul li:nth-child("+s+")",   obj).clone().css(
             options.vertical ? { position: "absolute", top : - i * h } : { marginLeft : - i * w } 
           ));
@@ -161,10 +165,10 @@
 
 					switch(dir){
 						case "next":
-							curPos = (oldPos >= maxPos) ? (options.continuous ? curPos+options.scrollBy : maxPos) : curPos+options.scrollBy;
+							curPos = options.continuous ? curPos+options.scrollBy : maxPos;
 							break; 
 						case "prev":
-							curPos = (curPos <= 0)      ? (options.continuous ? curPos-options.scrollBy : 0) :      curPos-options.scrollBy;
+							curPos = options.continuous ? curPos-options.scrollBy : 0;
 							break; 
 						case "first":
 							curPos = 0;
@@ -185,7 +189,7 @@
 					);				
 					
 					if(!options.continuous && options.controlsFade){					
-						if(curPos==(maxPos-options.itemCount+1)){
+						if(curPos==(maxPos)){
 							$("a","#"+options.nextId).hide();
 							$("a","#"+options.lastId).hide();
 						} else {
@@ -218,6 +222,39 @@
           : { marginLeft: - pos * w };				
       }
 
+      function addElement(txt){
+        if (options.continuous) {
+          $('ul li', obj).slice(0,padItemCount).each(function(i){
+            $(this).css(cssForPosition(padItemCount-i+1));
+          });
+        }
+
+        var newLast   = jQuery("<li style='float:left;'>"+txt+"</li>");
+        var newFirst  = jQuery("<li style='float:left; margin-left: -"+w+"px;'>"+txt+"</li>");   
+
+        lastItem.after(newLast);   
+        lastItem = newLast;
+
+        firstItem.before(newFirst); 
+
+        s++;
+        maxPos++;
+        padItemCount ++;
+        totalItemCount += 2;
+
+        if (options.vertical) {
+          $("ul", obj).css('height', totalItemCount * h);
+          obj.width(w); 
+          obj.height(h * options.itemCount); 
+        } else {
+          $("ul", obj).css('width',  totalItemCount * w);
+          obj.width(w * options.itemCount); 
+          obj.height(h); 
+          $("li", obj).css('float','left');
+        }
+
+      }
+
 			// init
 			var timeout;
 			if(options.auto){;
@@ -232,8 +269,12 @@
 			};
 
       adjust();
-		});
 
+      $('#adder').click(function(){
+        addElement(s+1);
+      });
+
+		});
 	};
 
 })(jQuery);
