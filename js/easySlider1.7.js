@@ -60,46 +60,55 @@
       scrollBy:       1,
       startAt:        0
 		}; 
-		
+
 		var options = $.extend(defaults, options);  
 				
 		this.each(function() {  
-			var obj = $(this); 				
+			var container = $(this); 				
+      $('ul', obj).wrap('<div></div>');
+      var obj = $('div', container);
+
 			var w = $("li", obj).width(); 
 			var h = $("li", obj).height(); 
 			var s = $("li", obj).length;
+
+      var liCss = {
+        position:   'absolute',
+        listStyle:  'none',
+        width:      w,
+        height:     h
+      };
+		
 			var clickable = true;
-			var maxPos = options.continuous ? s-1 : s-options.itemCount;
-			var curPos = options.startAt;
+      var padItemCount   = options.continuous ? options.itemCount + options.scrollBy : 0;
+			var maxPos         = options.continuous ? s : s - options.itemCount;
+			var curPos         = options.startAt;
       var totalItemCount = s;
+
+      console.log(s+" "+padItemCount+" "+maxPos);
       
       var firstItem = $("ul li:first-child");
       var lastItem  = $("ul li:nth-child("+s+")");
-      var padItemCount = Math.max(options.itemCount, options.scrollBy) + options.startAt;
 			
 			if(options.continuous){
         for (var i=1; i <= padItemCount; i++){
-          $("ul", obj).prepend($("ul li:nth-child("+s+")",   obj).clone().css(
-            options.vertical ? { position: "absolute", top : - i * h } : { marginLeft : - i * w } 
-          ));
+          $("ul", obj).prepend($("ul li:nth-child("+s+")",   obj).clone());
           $("ul", obj).append( $("ul li:nth-child("+2*i+")", obj).clone());
         }
 				totalItemCount = s + 2 * options.itemCount;
 			};				
 
-      if (options.vertical) {
-        $("ul", obj).css('height', totalItemCount * h);
-			  obj.width(w); 
-			  obj.height(h * options.itemCount); 
-      } else {
-        $("ul", obj).css('width',  totalItemCount * w);
-			  obj.width(w * options.itemCount); 
-			  obj.height(h); 
-			  $("li", obj).css('float','left');
-      }
+      $("ul", obj).css({ position: "relative"});
+      $("li", obj).css(liCss);
 
-			obj.css(          { overflow: "hidden", });
-      $("ul", obj).css( { position: "relative"});
+      sizeContainers();
+      positionLis();
+
+      obj.css({
+		    position: "absolute",
+        clip:     "rect(0px "+(options.vertical ? w : w * s)+"px "+(options.vertical ? h * s : h)+"px 0px)",
+        overflow: "hidden"
+      });
 								
 			if(options.controlsShow){
 				var html = options.controlsBefore;				
@@ -149,14 +158,39 @@
 			};
 			
 			function adjust(){
-				if (curPos >= maxPos)  curPos =  curPos            % maxPos - 1;		
-				if (curPos < 0)        curPos = (curPos + maxPos)  % maxPos + 1;
+        if (options.continuous) {
+          if (curPos >= maxPos)  curPos =  curPos            % maxPos;		
+          if (curPos < 0)        curPos = (curPos + maxPos)  % maxPos;
+        }
 
-				$("ul", obj).css(cssForPosition(curPos));
+				$("ul", obj).css(ulCssForPosition(curPos));
 
 				clickable = true;
 				if(options.numeric) setCurrent(curPos);
+        console.log(">>> "+curPos);
 			};
+
+      function positionLis(){
+        $("li", obj).each(function(i){
+          $(this).css(liCssForPosition(i-padItemCount));
+        });                         
+      }
+
+      function sizeContainers(){
+        if (options.vertical) {
+          container.width(w); 
+          container.height(h * options.itemCount); 
+          obj.width(w); 
+          obj.height(h * options.itemCount); 
+          $("ul", obj).css('height', totalItemCount * h);
+        } else {
+          container.width(w* options.itemCount);
+          container.height(h);
+          obj.width(w * options.itemCount); 
+          obj.height(h); 
+          $("ul", obj).css('width',  totalItemCount * w);
+        }
+      }
 			
 			function animate(dir,clicked){
 				if (clickable){
@@ -165,10 +199,10 @@
 
 					switch(dir){
 						case "next":
-							curPos = options.continuous ? curPos+options.scrollBy : maxPos;
+							curPos = options.continuous ? curPos+options.scrollBy : Math.min(curPos+options.scrollBy, maxPos);
 							break; 
 						case "prev":
-							curPos = options.continuous ? curPos-options.scrollBy : 0;
+							curPos = options.continuous ? curPos-options.scrollBy : Math.max(curPos-options.scrollBy, 0);
 							break; 
 						case "first":
 							curPos = 0;
@@ -184,7 +218,7 @@
 					var speed = options.speed;						
 
 				  $("ul",obj).animate(
-            cssForPosition(curPos),
+            ulCssForPosition(curPos),
 						{ queue:false, duration:speed, complete:adjust }
 					);				
 					
@@ -216,21 +250,17 @@
 				};
 			};
 
-      function cssForPosition(pos){
-        return (options.vertical) 
-          ? { marginTop:  - pos * h }
-          : { marginLeft: - pos * w };				
+      function liCssForPosition(pos){
+        return (options.vertical) ? { top:  pos * h } : { left:  pos * w };				
+      }
+
+      function ulCssForPosition(pos){
+        return (options.vertical) ? { top: -pos * h } : { left: -pos * w };				
       }
 
       function addElement(txt){
-        if (options.continuous) {
-          $('ul li', obj).slice(0,padItemCount).each(function(i){
-            $(this).css(cssForPosition(padItemCount-i+1));
-          });
-        }
-
-        var newLast   = jQuery("<li style='float:left;'>"+txt+"</li>");
-        var newFirst  = jQuery("<li style='float:left; margin-left: -"+w+"px;'>"+txt+"</li>");   
+        var newLast   = jQuery("<li>"+txt+"</li>").css(liCss);
+        var newFirst  = jQuery("<li>"+txt+"</li>").css(liCss);   
 
         lastItem.after(newLast);   
         lastItem = newLast;
@@ -242,17 +272,8 @@
         padItemCount ++;
         totalItemCount += 2;
 
-        if (options.vertical) {
-          $("ul", obj).css('height', totalItemCount * h);
-          obj.width(w); 
-          obj.height(h * options.itemCount); 
-        } else {
-          $("ul", obj).css('width',  totalItemCount * w);
-          obj.width(w * options.itemCount); 
-          obj.height(h); 
-          $("li", obj).css('float','left');
-        }
-
+        sizeContainers();
+        positionLis();
       }
 
 			// init
