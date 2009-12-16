@@ -10,11 +10,14 @@
     <script type="text/javascript">
       $(document).ready(function(){	
         $("#slider").easySlider({
-          continuous: false,
-          itemCount:  3,
-          scrollBy:   2,
-          startAt:    1,
-          vertical:   false
+          continuous:   true,
+          // visibleItems: 3,
+          scrollBy:     2,
+          startAt:      1,
+          vertical:     false,
+          ajaxUrl:    'url',
+          prevId:       'prev',
+          nextId:       'next'
         });
       });	
     </script>
@@ -40,7 +43,7 @@
       </h1>
 
       <div id="content">
-        <div id="slider" style="border: 1px solid blue">
+        <div id="slider" style="border: 1px solid blue; width: 200px; margin: auto">
           <ul>				
             <li>1</li>
             <li>2</li>
@@ -52,22 +55,11 @@
             <li>8</li>
           </ul>
         </div>
-        <h3>adding elements</h3>
+        <a id="prev" href="javascript:;">prev</a>
+        <a id="next" href="javascript:;">next</a>
 
-        <button id="adder"> ADD element at the end
-        </button>
-
-        <h3>Usage</h3>
-        <pre>
-          $(document).ready(function(){	
-            $("#slider").easySlider({
-              continuous: true,
-              itemCount:  4,
-              scrollBy:   2,
-              startAt:    1
-            });
-          });	
-        </pre>
+        <div id="message">
+        </div>
       </div>
     </div>
   </body>

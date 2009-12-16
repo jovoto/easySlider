@@ -36,19 +36,10 @@
 		// default configuration properties
 		var defaults = {			
 			prevId: 		    'prevBtn',
-			prevText: 		  'Previous',
 			nextId: 		    'nextBtn',	
-			nextText: 		  'Next',
-			controlsShow:	  true,
-			controlsBefore:	'',
-			controlsAfter:	'',	
 			controlsFade:	  true,
 			firstId: 		    'firstBtn',
-			firstText: 		  'First',
-			firstShow:		  false,
 			lastId: 		    'lastBtn',	
-			lastText: 		  'Last',
-			lastShow:		    false,				
 			vertical:		    false,
 			speed: 			    800,
 			auto:			      false,
@@ -56,9 +47,9 @@
 			continuous:		  false, 
 			numeric: 		    false,
 			numericId:      'controls',
-      itemCount:      1,
       scrollBy:       1,
-      startAt:        0
+      startAt:        0,
+      visibleItems:   0
 		}; 
 
 		var options = $.extend(defaults, options);  
@@ -71,6 +62,9 @@
 			var w = $("li", obj).width(); 
 			var h = $("li", obj).height(); 
 			var s = $("li", obj).length;
+      var visItemCount  = options.visibleItems || getVisItemCount();
+      var scrollBy      = options.scrollBy;
+      var scrollBy      = visItemCount - 1;
 
       var liCss = {
         position:   'absolute',
@@ -78,15 +72,22 @@
         width:      w,
         height:     h
       };
+
+      if (!options.visibleItems) {
+        $(window).resize(function(){
+          visItemCount = getVisItemCount();
+          scrollBy = visItemCount - 1;
+          adjust();
+          sizeContainers();
+        });
+      }
 		
 			var clickable = true;
-      var padItemCount   = options.continuous ? options.itemCount + options.scrollBy : 0;
-			var maxPos         = options.continuous ? s : s - options.itemCount;
+      var padItemCount   = options.continuous ? visItemCount + scrollBy : 0;
+			var maxPos         = options.continuous ? s : s - visItemCount;
 			var curPos         = options.startAt;
       var totalItemCount = s;
 
-      console.log(s+" "+padItemCount+" "+maxPos);
-      
       var firstItem = $("ul li:first-child");
       var lastItem  = $("ul li:nth-child("+s+")");
 			
@@ -95,36 +96,19 @@
           $("ul", obj).prepend($("ul li:nth-child("+s+")",   obj).clone());
           $("ul", obj).append( $("ul li:nth-child("+2*i+")", obj).clone());
         }
-				totalItemCount = s + 2 * options.itemCount;
+				totalItemCount = s + 2 * visItemCount;
 			};				
 
-      $("ul", obj).css({ position: "relative"});
+      $("ul", obj).css({ 
+        position: "relative",
+        margin:   '0px',
+        padding:  '0px'
+      });
       $("li", obj).css(liCss);
 
       sizeContainers();
-      positionLis();
+      positionItems();
 
-      obj.css({
-		    position: "absolute",
-        clip:     "rect(0px "+(options.vertical ? w : w * s)+"px "+(options.vertical ? h * s : h)+"px 0px)",
-        overflow: "hidden"
-      });
-								
-			if(options.controlsShow){
-				var html = options.controlsBefore;				
-				if(options.numeric){
-					html += '<ol id="'+ options.numericId +'"></ol>';
-				} else {
-					if(options.firstShow) html += '<span id="'+ options.firstId +'"><a href=\"javascript:void(0);\">'+ options.firstText +'</a></span>';
-					html += ' <span id="'+ options.prevId +'"><a href=\"javascript:void(0);\">'+ options.prevText +'</a></span>';
-					html += ' <span id="'+ options.nextId +'"><a href=\"javascript:void(0);\">'+ options.nextText +'</a></span>';
-					if(options.lastShow) html += ' <span id="'+ options.lastId +'"><a href=\"javascript:void(0);\">'+ options.lastText +'</a></span>';				
-				};
-				
-				html += options.controlsAfter;						
-				$(obj).after(html);										
-			};
-			
 			if(options.numeric){									
 				for(var i=0;i<s;i++){						
 					$(document.createElement("li"))
@@ -136,28 +120,46 @@
 						}); 												
 				};							
 			} else {
-				$("a","#"+options.nextId).click(function(){		
+				$("#"+options.nextId).click(function(){		
 					animate("next",true);
 				});
-				$("a","#"+options.prevId).click(function(){		
+				$("#"+options.prevId).click(function(){		
 					animate("prev",true);				
 				});	
-				$("a","#"+options.firstId).click(function(){		
+				$("#"+options.firstId).click(function(){		
 					animate("first",true);
 				});				
-				$("a","#"+options.lastId).click(function(){		
+				$("#"+options.lastId).click(function(){		
 					animate("last",true);				
 				});				
 			};
-  
+
+      function getVisItemCount(){
+        return (options.vertical) 
+          ? Math.floor(container.parent().height() / h)
+          : Math.floor(container.parent().width()  / w)
+      }
 			
-			function setCurrent(i){
+			function setCurrentNumericSwitch(i){
 				i = parseInt(i)+1;
 				$("li", "#" + options.numericId).removeClass("current");
 				$("li#" + options.numericId + i).addClass("current");
 			};
 			
 			function adjust(){
+        console.log(curPos+" "+maxPos);
+        if (options.ajaxUrl && (curPos >= maxPos - 3 * scrollBy) && (curPos < maxPos)) {
+          $('#message').text('loading new Elements');
+
+          for(var i=0; i<scrollBy; i++) { 
+            addElement(s+1); 
+          }
+
+          setTimeout(function(){
+            $('#message').text('');
+          },2000);
+        }
+
         if (options.continuous) {
           if (curPos >= maxPos)  curPos =  curPos            % maxPos;		
           if (curPos < 0)        curPos = (curPos + maxPos)  % maxPos;
@@ -166,11 +168,11 @@
 				$("ul", obj).css(ulCssForPosition(curPos));
 
 				clickable = true;
-				if(options.numeric) setCurrent(curPos);
-        console.log(">>> "+curPos);
+
+				if(options.numeric) setCurrentNumericSwitch(curPos);
 			};
 
-      function positionLis(){
+      function positionItems(){
         $("li", obj).each(function(i){
           $(this).css(liCssForPosition(i-padItemCount));
         });                         
@@ -179,17 +181,23 @@
       function sizeContainers(){
         if (options.vertical) {
           container.width(w); 
-          container.height(h * options.itemCount); 
+          container.height(h * visItemCount); 
           obj.width(w); 
-          obj.height(h * options.itemCount); 
+          obj.height(h * visItemCount); 
           $("ul", obj).css('height', totalItemCount * h);
         } else {
-          container.width(w* options.itemCount);
+          container.width(w* visItemCount);
           container.height(h);
-          obj.width(w * options.itemCount); 
+          obj.width(w *visItemCount); 
           obj.height(h); 
           $("ul", obj).css('width',  totalItemCount * w);
         }
+        obj.css({
+          position: "absolute",
+          clip:     "rect(0px "+(options.vertical ? w : w * s)+"px "+(options.vertical ? h * s : h)+"px 0px)",
+          overflow: "hidden"
+        });
+        
       }
 			
 			function animate(dir,clicked){
@@ -199,10 +207,10 @@
 
 					switch(dir){
 						case "next":
-							curPos = options.continuous ? curPos+options.scrollBy : Math.min(curPos+options.scrollBy, maxPos);
+							curPos = options.continuous ? curPos + scrollBy : Math.min(curPos + scrollBy, maxPos);
 							break; 
 						case "prev":
-							curPos = options.continuous ? curPos-options.scrollBy : Math.max(curPos-options.scrollBy, 0);
+							curPos = options.continuous ? curPos - scrollBy : Math.max(curPos - scrollBy, 0);
 							break; 
 						case "first":
 							curPos = 0;
@@ -221,23 +229,8 @@
             ulCssForPosition(curPos),
 						{ queue:false, duration:speed, complete:adjust }
 					);				
-					
-					if(!options.continuous && options.controlsFade){					
-						if(curPos==(maxPos)){
-							$("a","#"+options.nextId).hide();
-							$("a","#"+options.lastId).hide();
-						} else {
-							$("a","#"+options.nextId).show();
-							$("a","#"+options.lastId).show();					
-						};
-						if(curPos==0){
-							$("a","#"+options.prevId).hide();
-							$("a","#"+options.firstId).hide();
-						} else {
-							$("a","#"+options.prevId).show();
-							$("a","#"+options.firstId).show();
-						};					
-					};				
+
+          toggleControls();
 					
 					if(clicked) clearTimeout(timeout);
 
@@ -251,11 +244,30 @@
 			};
 
       function liCssForPosition(pos){
-        return (options.vertical) ? { top:  pos * h } : { left:  pos * w };				
+        return (options.vertical) ? { left: 0, top:  pos * h } : { top: 0, left:  pos * w };				
       }
 
       function ulCssForPosition(pos){
-        return (options.vertical) ? { top: -pos * h } : { left: -pos * w };				
+        return (options.vertical) ? { left: 0, top: -pos * h } : { top: 0, left: -pos * w };				
+      }
+
+      function toggleControls(){
+        if(!options.continuous && options.controlsFade){					
+          if(curPos==(maxPos)){
+            $("#"+options.nextId).hide();
+            $("#"+options.lastId).hide();
+          } else {
+            $("#"+options.nextId).show();
+            $("#"+options.lastId).show();					
+          };
+          if(curPos==0){
+            $("#"+options.prevId).hide();
+            $("#"+options.firstId).hide();
+          } else {
+            $("#"+options.prevId).show();
+            $("#"+options.firstId).show();
+          };					
+        };				
       }
 
       function addElement(txt){
@@ -273,7 +285,7 @@
         totalItemCount += 2;
 
         sizeContainers();
-        positionLis();
+        positionItems();
       }
 
 			// init
@@ -284,17 +296,8 @@
 				},options.pause);
 			};		
 			
-			if(!options.continuous && options.controlsFade){					
-				$("a","#"+options.prevId).hide();
-				$("a","#"+options.firstId).hide();				
-			};
-
       adjust();
-
-      $('#adder').click(function(){
-        addElement(s+1);
-      });
-
+      toggleControls();
 		});
 	};
 
