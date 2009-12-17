@@ -186,18 +186,16 @@
 				if (clickable){
 					clickable   = false;
 
-          curPos = {
+          curPos = parseInt(dir) || {
             'next'  : options.continuous ? curPos + scrollBy : Math.min(curPos + scrollBy, maxPos),
 						'prev'  : options.continuous ? curPos - scrollBy : Math.max(curPos - scrollBy, 0),
             'first' : 0,
             'last'  : maxPos
-          }[dir] || dir;
-
-					var speed = options.speed;						
+          }[dir];
 
 				  container.animate(
             containerCssForPosition(curPos),
-						{ queue:false, duration:speed, complete:adjust }
+						{ queue: false, duration: options.speed, complete: adjust }
 					);				
 
           toggleControls();
@@ -207,7 +205,7 @@
 					if(options.auto && dir=="next" && !clicked){;
 						timeout = setTimeout(function(){
 							animate("next",false);
-						},speed+options.pause);
+						}, options.speed + options.pause);
 					};
 			
 				};
