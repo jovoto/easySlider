@@ -10,10 +10,14 @@
     <script type="text/javascript">
       $(document).ready(function(){	
         $("#slider").easySlider({
-          continuous: true,
-          itemCount:  3,
-          scrollBy:   2,
-          vertical:   false
+          continuous:   true,
+          // visibleItems: 3,
+          scrollBy:     2,
+          startAt:      1,
+          vertical:     false,
+          ajaxUrl:    'url',
+          prevId:       'prev',
+          nextId:       'next'
         });
       });	
     </script>
@@ -22,9 +26,10 @@
 
     <style>
       #slider li{
+        padding-top: 50px;
         width:      150px;
         height:     200px;
-        font-size:  200px;
+        font-size:  100px;
         text-align: center;
       }
     </style>
@@ -32,13 +37,13 @@
   </head>
   <body>
     <div id="container">
-      <div id="header">
-        <h1>
-          diverse Tests
-        </h1>
-      </div>
+
+      <h1>
+        diverse Tests
+      </h1>
+
       <div id="content">
-        <div id="slider" class="slider" style="border: 1px solid blue">
+        <div id="slider" style="border: 1px solid blue; width: 200px; margin: auto">
           <ul>				
             <li>1</li>
             <li>2</li>
@@ -46,18 +51,15 @@
             <li>4</li>
             <li>5</li>
             <li>6</li>
+            <li>7</li>
+            <li>8</li>
           </ul>
         </div>
-        <h3>Usage</h3>
-<pre>
-  $(document).ready(function(){	
-    $("#slider").easySlider({
-      auto: true,
-      continuous: true,
-      numeric: true
-    });
-  });
-</pre>
+        <a id="prev" href="javascript:;">prev</a>
+        <a id="next" href="javascript:;">next</a>
+
+        <div id="message">
+        </div>
       </div>
     </div>
   </body>

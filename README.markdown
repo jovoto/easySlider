@@ -1,6 +1,9 @@
 options
 =======
 
+existing
+--------
+
 * auto:  
   Automatically move slider to the left every 2 seconds. Defaults to false.
 * controlsAfter: 
@@ -57,4 +60,11 @@ options
   Nr. of item to start with. Defaults to 0.
 * vertical:  
   Enable vertical scrolling. Defaults to false.
+* startAt:
+  start position of the slider
 
+todo
+----
+* growToParent:
+  grow (in decrete steps) to always approximately fill parent
+* let continuous take URL string argument for ajax requests
