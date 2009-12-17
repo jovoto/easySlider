@@ -1,16 +1,13 @@
 options
 =======
 
-existing
---------
-
 * auto:  
   Automatically move slider to the left every 2 seconds. Defaults to false.
 * controlsAfter: 
   Specifies which html-element to insert after the set of control-elements of a slider (e.g. '</p>'). Defaults to ''.
 * controlsBefore: 
-  Specifies which html-element to insert before the set of control-elements of a slider (e.g. '<p id="controls">'). Defaults to ''. This controlsBefore (in combination with controlesAfter) would 
-  wrap all controll-elements (e.g. buttons) in a paragraph with the id 'controls'.
+  Specifies which html-element to insert before the set of control-elements of a slider, e.g. '<p id="controls">'. This (in combination with controlesAfter) would wrap all
+  controll-elements (e.g. buttons) in a paragraph with the id 'controls'. Defaults to ''. 
 * controlsFade: 
   If set to false it will disable button hiding when slider reaches the end. Defaults to true.
 * controlsShow: 
