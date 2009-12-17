@@ -13,7 +13,7 @@
           continuous:   true,
           // visibleItems: 3,
           scrollBy:     2,
-          startAt:      1,
+          startAt:      2,
           vertical:     false,
           ajaxUrl:    'url',
           prevId:       'prev',
@@ -25,7 +25,7 @@
     <link href="css/screen.css" rel="stylesheet" type="text/css" media="screen" />	
 
     <style>
-      #slider li{
+      #slider .slider-item{
         padding-top: 50px;
         width:      150px;
         height:     200px;
@@ -44,16 +44,16 @@
 
       <div id="content">
         <div id="slider" style="border: 1px solid blue; width: 200px; margin: auto">
-          <ul>				
-            <li>1</li>
-            <li>2</li>
-            <li>3</li>
-            <li>4</li>
-            <li>5</li>
-            <li>6</li>
-            <li>7</li>
-            <li>8</li>
-          </ul>
+          <div class="slider-container">				
+            <div class="slider-item">11</div>
+            <div class="slider-item">12</div>
+            <div class="slider-item">13</div>
+            <div class="slider-item">14</div>
+            <div class="slider-item">15</div>
+            <div class="slider-item">16</div>
+            <div class="slider-item">17</div>
+            <div class="slider-item">18</div>
+          </div>
         </div>
         <a id="prev" href="javascript:;">prev</a>
         <a id="next" href="javascript:;">next</a>

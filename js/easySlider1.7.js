@@ -13,21 +13,6 @@
  *	http://jquery.com
  *
  */
- 
-/*
- *	markup example for $("#slider").easySlider();
- *	
- * 	<div id="slider">
- *		<ul>
- *			<li><img src="images/01.jpg" alt="" /></li>
- *			<li><img src="images/02.jpg" alt="" /></li>
- *			<li><img src="images/03.jpg" alt="" /></li>
- *			<li><img src="images/04.jpg" alt="" /></li>
- *			<li><img src="images/05.jpg" alt="" /></li>
- *		</ul>
- *	</div>
- *
- */
 
 (function($) {
 
@@ -55,22 +40,29 @@
 		var options = $.extend(defaults, options);  
 				
 		this.each(function() {  
-			var container = $(this); 				
-      $('ul', obj).wrap('<div></div>');
-      var obj = $('div', container);
+			var outest = $(this); 				
+      var container = $('.slider-container', outest);
+      container.wrap('<div class="slider-box"></div>');
+      var box = $('div.slider-box', outest);
 
-			var w = $("li", obj).width(); 
-			var h = $("li", obj).height(); 
-			var s = $("li", obj).length;
+			var w = items().width(); 
+			var h = items().height(); 
+			var s = items().length;
       var visItemCount  = options.visibleItems || getVisItemCount();
       var scrollBy      = options.scrollBy;
       var scrollBy      = visItemCount - 1;
 
-      var liCss = {
+      var itemCss = {
         position:   'absolute',
         listStyle:  'none',
         width:      w,
         height:     h
+      };
+
+      var containerCss = {
+        position: "relative",
+        margin:   '0px',
+        padding:  '0px'
       };
 
       if (!options.visibleItems) {
@@ -88,23 +80,19 @@
 			var curPos         = options.startAt;
       var totalItemCount = s;
 
-      var firstItem = $("ul li:first-child");
-      var lastItem  = $("ul li:nth-child("+s+")");
+      var firstItem = $(".slider-item:first-child",      box);
+      var lastItem  = $(".slider-item:nth-child("+s+")", box);
 			
 			if(options.continuous){
         for (var i=1; i <= padItemCount; i++){
-          $("ul", obj).prepend($("ul li:nth-child("+s+")",   obj).clone());
-          $("ul", obj).append( $("ul li:nth-child("+2*i+")", obj).clone());
+          container.prepend($(".slider-item:nth-child("+s+")",   box).clone());
+          container.append( $(".slider-item:nth-child("+2*i+")", box).clone());
         }
 				totalItemCount = s + 2 * visItemCount;
 			};				
 
-      $("ul", obj).css({ 
-        position: "relative",
-        margin:   '0px',
-        padding:  '0px'
-      });
-      $("li", obj).css(liCss);
+      container.css(containerCss);
+      items().css(itemCss);
 
       sizeContainers();
       positionItems();
@@ -124,7 +112,7 @@
 					animate("next",true);
 				});
 				$("#"+options.prevId).click(function(){		
-					animate("prev",true);				
+					animate("prev",true);				 
 				});	
 				$("#"+options.firstId).click(function(){		
 					animate("first",true);
@@ -134,10 +122,14 @@
 				});				
 			};
 
+      function items(){
+        return $(".slider-item", box);
+      }
+
       function getVisItemCount(){
         return (options.vertical) 
-          ? Math.floor(container.parent().height() / h)
-          : Math.floor(container.parent().width()  / w)
+          ? Math.floor(outest.parent().height() / h)
+          : Math.floor(outest.parent().width()  / w)
       }
 			
 			function setCurrentNumericSwitch(i){
@@ -165,7 +157,7 @@
           if (curPos < 0)        curPos = (curPos + maxPos)  % maxPos;
         }
 
-				$("ul", obj).css(ulCssForPosition(curPos));
+				container.css(containerCssForPosition(curPos));
 
 				clickable = true;
 
@@ -173,30 +165,29 @@
 			};
 
       function positionItems(){
-        $("li", obj).each(function(i){
-          $(this).css(liCssForPosition(i-padItemCount));
+        items().each(function(i){
+          $(this).css(itemCssForPosition(i-padItemCount));
         });                         
       }
 
       function sizeContainers(){
         if (options.vertical) {
-          container.width(w); 
-          container.height(h * visItemCount); 
-          obj.width(w); 
-          obj.height(h * visItemCount); 
-          $("ul", obj).css('height', totalItemCount * h);
+          outerCss = {width: w, height: h * visItemCount};
+          container.css('height', totalItemCount * h);
         } else {
-          container.width(w* visItemCount);
-          container.height(h);
-          obj.width(w *visItemCount); 
-          obj.height(h); 
-          $("ul", obj).css('width',  totalItemCount * w);
+          outerCss = {width: w * visItemCount, height: h};
+          container.css('width',  totalItemCount * w);
         }
-        obj.css({
-          position: "absolute",
-          clip:     "rect(0px "+(options.vertical ? w : w * s)+"px "+(options.vertical ? h * s : h)+"px 0px)",
-          overflow: "hidden"
-        });
+
+        outest.css(outerCss);
+        box.css($.extend( 
+          {
+            position: "absolute",
+            clip:     "rect(0px "+(options.vertical ? w : w * s)+"px "+(options.vertical ? h * s : h)+"px 0px)",
+            overflow: "hidden"
+          },
+          outerCss
+        ));
         
       }
 			
@@ -225,8 +216,8 @@
 					var diff  = Math.abs(oldPos-curPos);
 					var speed = options.speed;						
 
-				  $("ul",obj).animate(
-            ulCssForPosition(curPos),
+				  container.animate(
+            containerCssForPosition(curPos),
 						{ queue:false, duration:speed, complete:adjust }
 					);				
 
@@ -243,36 +234,24 @@
 				};
 			};
 
-      function liCssForPosition(pos){
+      function itemCssForPosition(pos){
         return (options.vertical) ? { left: 0, top:  pos * h } : { top: 0, left:  pos * w };				
       }
 
-      function ulCssForPosition(pos){
+      function containerCssForPosition(pos){
         return (options.vertical) ? { left: 0, top: -pos * h } : { top: 0, left: -pos * w };				
       }
 
       function toggleControls(){
         if(!options.continuous && options.controlsFade){					
-          if(curPos==(maxPos)){
-            $("#"+options.nextId).hide();
-            $("#"+options.lastId).hide();
-          } else {
-            $("#"+options.nextId).show();
-            $("#"+options.lastId).show();					
-          };
-          if(curPos==0){
-            $("#"+options.prevId).hide();
-            $("#"+options.firstId).hide();
-          } else {
-            $("#"+options.prevId).show();
-            $("#"+options.firstId).show();
-          };					
+          $("#"+options.nextId+", #"+options.lastId) [(curPos==maxPos) ? 'hide' : 'show']();
+          $("#"+options.prevId+", #"+options.firstId)[(curPos==0)      ? 'hide' : 'show']();
         };				
       }
 
       function addElement(txt){
-        var newLast   = jQuery("<li>"+txt+"</li>").css(liCss);
-        var newFirst  = jQuery("<li>"+txt+"</li>").css(liCss);   
+        var newLast   = jQuery('<div class="slider-item">'+txt+"</div>").css(itemCss);
+        var newFirst  = jQuery('<div class="slider-item">'+txt+"</div>").css(itemCss);   
 
         lastItem.after(newLast);   
         lastItem = newLast;
