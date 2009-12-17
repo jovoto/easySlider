@@ -108,18 +108,9 @@
 						}); 												
 				};							
 			} else {
-				$("#"+options.nextId).click(function(){		
-					animate("next",true);
-				});
-				$("#"+options.prevId).click(function(){		
-					animate("prev",true);				 
-				});	
-				$("#"+options.firstId).click(function(){		
-					animate("first",true);
-				});				
-				$("#"+options.lastId).click(function(){		
-					animate("last",true);				
-				});				
+        jQuery.each(['next', 'prev', 'first', 'last'], function(i, move){
+          $('#'+options[move+"Id"]).click(function(){animate(move, true)});
+        });
 			};
 
       function items(){
