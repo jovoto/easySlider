@@ -185,26 +185,14 @@
 			function animate(dir,clicked){
 				if (clickable){
 					clickable   = false;
-					var oldPos  = curPos;				
 
-					switch(dir){
-						case "next":
-							curPos = options.continuous ? curPos + scrollBy : Math.min(curPos + scrollBy, maxPos);
-							break; 
-						case "prev":
-							curPos = options.continuous ? curPos - scrollBy : Math.max(curPos - scrollBy, 0);
-							break; 
-						case "first":
-							curPos = 0;
-							break; 
-						case "last":
-							curPos = maxPos;
-							break; 
-						default:
-							curPos = dir;
-							break; 
-					};	
-					var diff  = Math.abs(oldPos-curPos);
+          curPos = {
+            'next'  : options.continuous ? curPos + scrollBy : Math.min(curPos + scrollBy, maxPos),
+						'prev'  : options.continuous ? curPos - scrollBy : Math.max(curPos - scrollBy, 0),
+            'first' : 0,
+            'last'  : maxPos
+          }[dir] || dir;
+
 					var speed = options.speed;						
 
 				  container.animate(
