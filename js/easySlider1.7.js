@@ -130,7 +130,7 @@
 			};
 			
 			function adjust(){
-        console.log(curPos+" "+maxPos);
+        // console.log(curPos+" "+maxPos);
         if (options.ajaxUrl && (curPos >= maxPos - 3 * scrollBy) && (curPos < maxPos)) {
           $('#message').text('loading new Elements');
 
