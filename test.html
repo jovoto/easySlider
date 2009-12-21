@@ -9,16 +9,15 @@
 
     <script type="text/javascript">
       $(document).ready(function(){	
-        $("#slider").easySlider({
-          numeric: true,
-          continuous:   true,
+        $("#slider").jovoSlider({
+          continuous:     true,
           // visibleItems: 3,
-          scrollBy:     2,
-          startAt:      2,
-          vertical:     false,
-          ajaxUrl:    'url',
-          prevId:       'prev',
-          nextId:       'next'
+          scrollPosition: 2,
+          vertical:       false,
+          ajaxUrl:        'url',
+          prevId:         'prev',
+          nextId:         'next',
+          loadPosition:   10
         });
       });	
     </script>
@@ -33,6 +32,16 @@
         font-size:  100px;
         text-align: center;
       }
+
+      div.first {
+        background-color: #99ff99;
+      }
+
+      div.last {
+        background-color: #ff9999;
+      }
+
+
     </style>
 	
   </head>

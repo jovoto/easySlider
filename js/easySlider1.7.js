@@ -1,11 +1,8 @@
 /*
- * 	Easy Slider 1.7.1 - jQuery plugin
- *	written by Alen Grakalic	
- *	http://cssglobe.com/post/4004/easy-slider-15-the-easiest-jquery-plugin-for-sliding
- * 
- *  forked and enhanced by Jovoto (www.jovoto.com)
+ * 	jovoSlider 0.8 - jQuery plugin
+ *	written by Alexander Presber / jovoto.com
  *
- *	Copyright (c) 2009 Alen Grakalic (http://cssglobe.com) (c) 2009 Jovoto.com
+ *	Copyright (c) 2009 Jovoto.com
  *	Dual licensed under the MIT (MIT-LICENSE.txt)
  *	and GPL (GPL-LICENSE.txt) licenses.
  *
@@ -16,7 +13,7 @@
 
 (function($) {
 
-	$.fn.easySlider = function(options){
+	$.fn.jovoSlider = function(options){
 	  
 		// default configuration properties
 		var defaults = {			
@@ -26,15 +23,16 @@
 			firstId: 		    'firstBtn',
 			lastId: 		    'lastBtn',	
 			vertical:		    false,
-			speed: 			    800,
+			duration:			  800,
 			auto:			      false,
 			pause:			    2000,
 			continuous:		  false, 
 			numeric: 		    false,
 			numericId:      'controls',
-      scrollBy:       1,
-      startAt:        0,
-      visibleItems:   0
+      scrollBy:       0,
+      scrollPosition: 0,
+      visibleItems:   0,
+      loadPosition:   10
 		}; 
 
 		var options = $.extend(defaults, options);  
@@ -49,8 +47,8 @@
 			var h = items().height(); 
 			var s = items().length;
       var visItemCount  = options.visibleItems || getVisItemCount();
-      var scrollBy      = options.scrollBy;
-      var scrollBy      = visItemCount - 1;
+      var scrollBy      = options.scrollBy || visItemCount - 1;
+      var loadPosition  = options.loadPosition;
 
       var itemCss = {
         position:   'absolute',
@@ -74,22 +72,29 @@
         });
       }
 		
-			var clickable = true;
-      var padItemCount   = options.continuous ? visItemCount + scrollBy : 0;
-			var maxPos         = options.continuous ? s : s - visItemCount;
-			var curPos         = options.startAt;
+			var clickable       = true;
+      var leftOffset      = options.continuous ? scrollBy + options.scrollPosition : 0;
+      var leftPadding     = leftOffset;
+      var rightPadding    = leftOffset;
+			var maxPos          = options.continuous ? s - 2 : s - visItemCount;
+      var minPos          = 0;
+			var curPos          = options.scrollPosition;
       var totalItemCount = s;
 
       var firstItem = $(".slider-item:first-child",      box);
       var lastItem  = $(".slider-item:nth-child("+s+")", box);
-			
+
 			if(options.continuous){
-        for (var i=1; i <= padItemCount; i++){
+        console.log('adding '+leftOffset+' elements on both sides');
+        for (var i=1; i <= leftOffset; i++){
           container.prepend($(".slider-item:nth-child("+s+")",   box).clone());
           container.append( $(".slider-item:nth-child("+2*i+")", box).clone());
         }
 				totalItemCount = s + 2 * visItemCount;
 			};				
+
+      firstItem.addClass('first');
+      lastItem.addClass('last');
 
       container.css(containerCss);
       items().css(itemCss);
@@ -130,23 +135,12 @@
 			};
 			
 			function adjust(){
-        // console.log(curPos+" "+maxPos);
-        if (options.ajaxUrl && (curPos >= maxPos - 3 * scrollBy) && (curPos < maxPos)) {
-          $('#message').text('loading new Elements');
-
-          for(var i=0; i<scrollBy; i++) { 
-            addElement(s+1); 
-          }
-
-          setTimeout(function(){
-            $('#message').text('');
-          },2000);
-        }
-
+        console.log('>> '+minPos+" "+curPos+" "+maxPos+" "+s);
         if (options.continuous) {
-          if (curPos >= maxPos)  curPos =  curPos            % maxPos;		
-          if (curPos < 0)        curPos = (curPos + maxPos)  % maxPos;
+               if (curPos >= maxPos)   curPos -= s;		
+          else if (curPos <= minPos )  curPos += s;
         }
+        console.log('<< '+minPos+" "+curPos+" "+maxPos);
 
 				container.css(containerCssForPosition(curPos));
 
@@ -157,7 +151,7 @@
 
       function positionItems(){
         items().each(function(i){
-          $(this).css(itemCssForPosition(i-padItemCount));
+          $(this).css(itemCssForPosition(i-leftOffset));
         });                         
       }
 
@@ -186,16 +180,25 @@
 				if (clickable){
 					clickable   = false;
 
+          if (options.ajaxUrl) {
+            if (dir=='next' && (curPos >= maxPos - 2 * scrollBy)) {
+              addAjaxItems('end', loadPosition+s, loadPosition+s+scrollBy);
+            } 
+            if (dir=='prev' && (curPos <= 2 * scrollBy)) {
+              addAjaxItems('start', loadPosition-scrollBy, loadPosition);
+            }
+          }
+
           curPos = parseInt(dir) || {
             'next'  : options.continuous ? curPos + scrollBy : Math.min(curPos + scrollBy, maxPos),
-						'prev'  : options.continuous ? curPos - scrollBy : Math.max(curPos - scrollBy, 0),
-            'first' : 0,
+						'prev'  : options.continuous ? curPos - scrollBy : Math.max(curPos - scrollBy, minPos),
+            'first' : minPos,
             'last'  : maxPos
           }[dir];
 
 				  container.animate(
             containerCssForPosition(curPos),
-						{ queue: false, duration: options.speed, complete: adjust }
+						{ queue: false, duration: options.duration, complete: adjust }
 					);				
 
           toggleControls();
@@ -205,7 +208,7 @@
 					if(options.auto && dir=="next" && !clicked){;
 						timeout = setTimeout(function(){
 							animate("next",false);
-						}, options.speed + options.pause);
+						}, options.duration + options.pause);
 					};
 			
 				};
@@ -222,23 +225,56 @@
       function toggleControls(){
         if(!options.continuous && options.controlsFade){					
           $("#"+options.nextId+", #"+options.lastId) [(curPos==maxPos) ? 'hide' : 'show']();
-          $("#"+options.prevId+", #"+options.firstId)[(curPos==0)      ? 'hide' : 'show']();
+          $("#"+options.prevId+", #"+options.firstId)[(curPos==minPos) ? 'hide' : 'show']();
         };				
       }
 
-      function addElement(txt){
-        var newLast   = jQuery('<div class="slider-item">'+txt+"</div>").css(itemCss);
-        var newFirst  = jQuery('<div class="slider-item">'+txt+"</div>").css(itemCss);   
+      function addAjaxItems(position, from, to) {
+        console.log(position+" "+from+" "+to);
+        from = Math.max(0, Math.min(from, 40, to));
+        to   = Math.max(0, from, Math.min(40, to));
+        var length = to - from;
+        if (length==0) return;
 
-        lastItem.after(newLast);   
-        lastItem = newLast;
+        var html = '';
+        var i;
 
-        firstItem.before(newFirst); 
+        for (i=from; i<to; i++){
+          html += '<div class="slider-item">'+(i+1)+"</div>";
+        }
 
-        s++;
-        maxPos++;
-        padItemCount ++;
-        totalItemCount += 2;
+        s               += length;
+        totalItemCount  += length;
+
+        if (position == 'start') {
+          firstItem.before($(html));   
+          if (options.continuous){
+            lastItem.after($(html));   
+            totalItemCount  += length;
+          }
+          leftOffset    += length;
+          loadPosition  -= length;
+          firstItem = $(".slider-item:nth-child("+(leftPadding+1)+")", box); 
+          minPos -= length;
+          console.log('new minPos:'+minPos);
+        } else {
+          lastItem.after($(html));   
+          if (options.continuous){
+            firstItem.before($(html));   
+            totalItemCount += length;
+            leftPadding    += length;
+            leftOffset     += length;
+          }
+          lastItem = $(".slider-item:nth-child("+(leftPadding+s)+")", box);
+          maxPos += length;
+          console.log('new maxPos:'+maxPos);
+        }
+
+        items().removeClass('first last')
+        firstItem.addClass('first');
+        lastItem.addClass('last');
+
+        items().css(itemCss);
 
         sizeContainers();
         positionItems();
